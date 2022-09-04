@@ -1,4 +1,16 @@
-import { memo } from "react";
+import { memo, useState } from "react";
+import dynamic from "next/dynamic";
+
+import { AddProductToWishlistProps } from "./AddProductToWishlist";
+
+const AddProductToWishlist = dynamic<AddProductToWishlistProps>(
+	async () => {
+		return import("./AddProductToWishlist").then(
+			(mod) => mod.AddProductToWishlist
+		);
+	},
+	{ loading: () => <span>Carregando...</span> }
+);
 
 interface ProductItemProps {
 	product: {
@@ -11,12 +23,20 @@ interface ProductItemProps {
 }
 
 function ProductItemComponent({ product, onAddToWishList }: ProductItemProps) {
+	const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
 	return (
 		<div>
 			{product.title} - <strong>{product.priceFormatted}</strong>
-			<button onClick={() => onAddToWishList(product.id)}>
-				Add to wishlist
+			<button onClick={() => setIsAddingToWishlist(true)}>
+				Adicionar aos favoritos
 			</button>
+			{isAddingToWishlist && (
+				<AddProductToWishlist
+					onAddToWishlist={() => onAddToWishList(product.id)}
+					onRequestClose={() => setIsAddingToWishlist(false)}
+				/>
+			)}
 		</div>
 	);
 }
@@ -27,3 +47,8 @@ export const ProductItem = memo(
 		return Object.is(prevProps.product, nextProps.product);
 	}
 );
+
+/**
+ * Poderia usar a função lazy do react se não estivesse usando
+ * next pois ela tem um funcionamento parecido
+ */
